@@ -95,8 +95,8 @@ def split_user_by_time(ratings: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFram
             train_list.append(user_df_sorted)
         else:
             train_list.append(user_df_sorted.iloc[:-2])
-            val_list.append(user_df_sorted.iloc[-2])
-            test_list.append(user_df_sorted.iloc[-1])
+            val_list.append(user_df_sorted.iloc[-2: -1])
+            test_list.append(user_df_sorted.iloc[-1:])
     
     train_df = pd.concat(train_list).reset_index(drop=True)
     val_df = pd.concat(val_list).reset_index(drop=True)
@@ -192,7 +192,7 @@ def print_split_summary(
     print(f"  Val ratings:   {len(val_df)}")
     print(f"  Test ratings:  {len(test_df)}")
     print(f"  Train users:   {train_df['user_idx'].nunique()}")
-    print(f"  Train items:   {train_df['item_idx'].nunique()}")
+    print(f"  Train items:   {train_df['movie_idx'].nunique()}")
 
 # ----------------------------
 # Main pipeline
@@ -214,6 +214,22 @@ def create_and_save_splits():
     save_id_mappings(user_to_idx, movie_to_idx)
     print_split_summary(train_df, val_df, test_df)
 
+def load_movies(path: str) -> pd.DataFrame:
+    """Load movies CSV and set movieId as index."""
+    return pd.read_csv(path).set_index('movieId')
+
+def load_train_data(path: str) -> pd.DataFrame:
+    """Load train data CSV."""
+    return pd.read_csv(path)
+
+def get_user_rated_items(train_df: pd.DataFrame, user_id: int) -> set:
+    """Get the set of movie_idx that the user has rated in train_df."""
+    return set(train_df[train_df['user_idx'] == user_id]['movie_idx'])
+
+if __name__ == "__main__":
+    print("Creating data splits...")
+    create_and_save_splits()
+    print("Done!")
 
 
 
